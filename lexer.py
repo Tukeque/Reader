@@ -12,6 +12,12 @@ class Reader(Generic[T]):
         self.pointer += 1
         return self.elements[self.pointer - 1]
 
+    def peek(self) -> T:
+        return self.elements[-1]
+
+    def peek_start(self) -> T:
+        return self.elements[0]
+
     def finished(self) -> bool:
         if self.pointer >= len(self.elements):
             return True
@@ -27,8 +33,6 @@ class Reader(Generic[T]):
 
         while not self.finished():
             item = self.read()
-
-            print(item)
 
             if inside:
                 if item == enter:
@@ -60,8 +64,6 @@ class Reader(Generic[T]):
         if level != 0: # hasn't properly exited
             error("Reader failed to find an until()")
 
-        print(result)
-
         return result
 
     def decrement(self):
@@ -75,7 +77,19 @@ class Reader(Generic[T]):
         return self
 
     def __repr__(self) -> str:
-        return "[" + ", ".join([repr(x) for x in self.elements]) + "]"
+        representation = "[" + ", ".join([repr(x) for x in self.elements]) + "]"
+        return representation
+
+    def split(self, splitter: T) -> list[list[T]]:
+        result = [[]]
+
+        for item in self.elements:
+            if item == splitter:
+                result.append([])
+            else:
+                result[-1].append(item)
+
+        return result
 
 class Lexer:
     def __init__(self, separators: list[str], style, joiner: str = ";", strings: list[str] = ['"', "'"], comments: bool = True, comment_tokens: list[str] = ["#", "//"], multi_comment_tokens: list[list[str]] = [["/*", "*/"], ["///", "///"], ['"""', '"""']]):
@@ -161,6 +175,8 @@ class Lexer:
                 if token in self.separators: # token is fully found
                     tokens.append(token)
                     token = ""
+
+        tokens.append(token)
 
         # tokens is now constructed
 
